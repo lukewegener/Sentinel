@@ -1,0 +1,26 @@
+// Summarize count of Compliant Windows 10 devices given a dynamic Version and Build and using the most recent diagnostic logset from Intune
+
+// Get Windows Version and Build numbers from OSVersion field
+let WinVer = (arg0:string) {tostring(split(arg0, ".")[2])};
+let WinBuild = (arg0:string) {tostring(split(arg0, ".")[3])};
+
+// Retrieve the number of records from the "Completed" message
+let NumRecords = toscalar(IntuneDevices
+| where Result == "Completed"
+| extend stats_json = parse_json(Stats)
+| project stats_json.RecordCount);
+
+// Get the latest batch of devices
+let CurrentDevices = IntuneDevices 
+| where Result != "Completed" 
+| order by TimeGenerated
+| limit toint(NumRecords);
+
+// Get Win10 devices only
+let Win10CurrentDevices = CurrentDevices
+| where OSVersion startswith "10.0";
+
+Win10CurrentDevices
+| where WinVer(OSVersion) == dynamic({WindowsVersion})
+| extend CurrentBuild = iff(toint(WinBuild(OSVersion)) >= toint(dynamic({WindowsBuild})), "Compliant", "NonCompliant")
+| summarize count() by CurrentBuild

@@ -1,0 +1,23 @@
+// Summarize count of Windows 10 versions using the most recent diagnostic logset from Intune
+
+// Get Windows Version number from OSVersion field
+let WinVer = (arg0:string) {tostring(split(arg0, ".")[2])};
+
+// Retrieve the number of records from the "Completed" message
+let NumRecords = toscalar(IntuneDevices
+| where Result == "Completed"
+| extend stats_json = parse_json(Stats)
+| project stats_json.RecordCount);
+
+// Get the latest batch of devices
+let CurrentDevices = IntuneDevices 
+| where Result != "Completed" 
+| order by TimeGenerated
+| limit toint(NumRecords);
+
+// Get Win10 devices only
+let Win10CurrentDevices = CurrentDevices
+| where OSVersion startswith "10.0";
+
+Win10CurrentDevices
+| summarize Count = count() by tostring(WinVer(OSVersion))

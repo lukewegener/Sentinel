@@ -1,0 +1,215 @@
+{
+  "version": "Notebook/1.0",
+  "items": [
+    {
+      "type": 9,
+      "content": {
+        "version": "KqlParameterItem/1.0",
+        "parameters": [
+          {
+            "id": "91c63721-3bf9-476e-b71c-e89e95e88de4",
+            "version": "KqlParameterItem/1.0",
+            "name": "time_period",
+            "type": 4,
+            "value": {
+              "durationMs": 2592000000,
+              "endTime": "2021-06-30T14:30:00.000Z"
+            },
+            "typeSettings": {
+              "selectableValues": [],
+              "allowCustom": true
+            },
+            "timeContext": {
+              "durationMs": 86400000
+            },
+            "label": "Time Period"
+          }
+        ],
+        "style": "pills",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces"
+      },
+      "name": "parameters - 1"
+    },
+    {
+      "type": 1,
+      "content": {
+        "json": "## Total Email Inbound"
+      },
+      "name": "text - 2"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "// Inbound mail\r\nMimecast_mail_CL\r\n| where RawData has_all (\"\\\"Dir\\\": \\\"Inbound\\\"\", \"\\\"logType\\\": \\\"receipt\\\"\")\r\n| summarize count() by bin(TimeGenerated, 1h)\r\n| render columnchart kind = stacked",
+        "size": 2,
+        "timeContext": {
+          "durationMs": 2592000000
+        },
+        "timeContextFromParameter": "time_period",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "visualization": "areachart"
+      },
+      "customWidth": "80",
+      "name": "query - 3"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "// Inbound mail\r\nMimecast_mail_CL\r\n| where RawData has_all (\"\\\"Dir\\\": \\\"Inbound\\\"\", \"\\\"logType\\\": \\\"receipt\\\"\")\r\n| summarize count()",
+        "size": 0,
+        "timeContext": {
+          "durationMs": 2592000000
+        },
+        "timeContextFromParameter": "time_period",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces"
+      },
+      "customWidth": "20",
+      "name": "query - 9"
+    },
+    {
+      "type": 1,
+      "content": {
+        "json": "---\r\n## Email Inbound Summary"
+      },
+      "name": "text - 8"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "// Inbound mail classified as either Greylisted, Accept or Reject\r\nMimecast_mail_CL\r\n| where RawData has_all (\"\\\"Dir\\\": \\\"Inbound\\\"\", \"\\\"logType\\\": \\\"receipt\\\"\")\r\n| extend mcast_payload = substring(RawData, 20)\r\n| extend mcast_json = parse_json(mcast_payload)\r\n| extend Action = case(tostring(mcast_json.Error) == \"Attempt Greylisted\", \"Greylist\", tostring(mcast_json.Act) == \"Acc\", \"Accept\", tostring(mcast_json.Act) == \"Rej\", \"Reject\", \"Other\")\r\n| summarize count() by Action, bin(TimeGenerated, 1h)\r\n| render columnchart kind = stacked",
+        "size": 2,
+        "timeContext": {
+          "durationMs": 2592000000
+        },
+        "timeContextFromParameter": "time_period",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "visualization": "areachart"
+      },
+      "customWidth": "80",
+      "name": "query - 2",
+      "styleSettings": {
+        "maxWidth": "50"
+      }
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "// Inbound mail classified as either Greylisted, Accept or Reject\r\nMimecast_mail_CL\r\n| where RawData has_all (\"\\\"Dir\\\": \\\"Inbound\\\"\", \"\\\"logType\\\": \\\"receipt\\\"\")\r\n| extend mcast_payload = substring(RawData, 20)\r\n| extend mcast_json = parse_json(mcast_payload)\r\n| extend Action = case(tostring(mcast_json.Error) == \"Attempt Greylisted\", \"Greylist\", tostring(mcast_json.Act) == \"Acc\", \"Accept\", tostring(mcast_json.Act) == \"Rej\", \"Reject\", \"Other\")\r\n| summarize count() by Action",
+        "size": 2,
+        "timeContext": {
+          "durationMs": 2592000000
+        },
+        "timeContextFromParameter": "time_period",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "visualization": "table",
+        "tileSettings": {
+          "showBorder": false,
+          "titleContent": {
+            "columnMatch": "Action",
+            "formatter": 1
+          },
+          "leftContent": {
+            "columnMatch": "count_",
+            "formatter": 12,
+            "formatOptions": {
+              "palette": "auto"
+            },
+            "numberFormat": {
+              "unit": 17,
+              "options": {
+                "maximumSignificantDigits": 3,
+                "maximumFractionDigits": 2
+              }
+            }
+          }
+        },
+        "graphSettings": {
+          "type": 0,
+          "topContent": {
+            "columnMatch": "Action",
+            "formatter": 1
+          },
+          "centerContent": {
+            "columnMatch": "count_",
+            "formatter": 1,
+            "numberFormat": {
+              "unit": 17,
+              "options": {
+                "maximumSignificantDigits": 3,
+                "maximumFractionDigits": 2
+              }
+            }
+          }
+        },
+        "mapSettings": {
+          "locInfo": "LatLong",
+          "sizeSettings": "count_",
+          "sizeAggregation": "Sum",
+          "legendMetric": "count_",
+          "legendAggregation": "Sum",
+          "itemColorSettings": {
+            "type": "heatmap",
+            "colorAggregation": "Sum",
+            "nodeColorField": "count_",
+            "heatmapPalette": "greenRed"
+          }
+        }
+      },
+      "customWidth": "20",
+      "name": "query - 5"
+    },
+    {
+      "type": 1,
+      "content": {
+        "json": "---\r\n## Email Inbound Rejected"
+      },
+      "name": "text - 7"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "// Inbound mail rejected (not Greylisted) and classified according to reason\r\nMimecast_mail_CL\r\n| where RawData has_all (\"\\\"Dir\\\": \\\"Inbound\\\"\", \"\\\"logType\\\": \\\"receipt\\\"\", \"\\\"Act\\\": \\\"Rej\\\"\") and RawData !has \"\\\"Error\\\": \\\"Attempt Greylisted\\\"\"\r\n| extend mcast_payload = substring(RawData, 20)\r\n| extend mcast_json=parse_json(mcast_payload)\r\n| extend RejectReason = case(tostring(mcast_json.mimecastEventId) == \"mail_receipt_spam\", \"Spam\", tostring(mcast_json.RejType) == \"\", \"Other\", tostring(mcast_json.RejType))\r\n| summarize count() by RejectReason, bin(TimeGenerated, 1h)\r\n| render columnchart kind = stacked",
+        "size": 2,
+        "timeContext": {
+          "durationMs": 2592000000
+        },
+        "timeContextFromParameter": "time_period",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "visualization": "areachart"
+      },
+      "customWidth": "80",
+      "name": "query - 4"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "// Inbound mail rejected (not Greylisted) and classified according to reason\r\nMimecast_mail_CL\r\n| where RawData has_all (\"\\\"Dir\\\": \\\"Inbound\\\"\", \"\\\"logType\\\": \\\"receipt\\\"\", \"\\\"Act\\\": \\\"Rej\\\"\") and RawData !has \"\\\"Error\\\": \\\"Attempt Greylisted\\\"\"\r\n| extend mcast_payload = substring(RawData, 20)\r\n| extend mcast_json=parse_json(mcast_payload)\r\n| extend RejectReason = case(tostring(mcast_json.mimecastEventId) == \"mail_receipt_spam\", \"Spam\", tostring(mcast_json.RejType) == \"\", \"Other\", tostring(mcast_json.RejType))\r\n| summarize count() by RejectReason",
+        "size": 0,
+        "timeContext": {
+          "durationMs": 86400000
+        },
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces"
+      },
+      "customWidth": "20",
+      "name": "query - 6"
+    }
+  ],
+  "fallbackResourceIds": [
+    "/subscriptions/fa57341a-f29a-4faf-af22-82158278597e/resourcegroups/prg-aus-prpci-sentinel-01/providers/microsoft.operationalinsights/workspaces/law-aus-caa-prpci-sentinel-01"
+  ],
+  "fromTemplateId": "sentinel-UserWorkbook",
+  "$schema": "https://github.com/Microsoft/Application-Insights-Workbooks/blob/master/schema/workbook.json"
+}

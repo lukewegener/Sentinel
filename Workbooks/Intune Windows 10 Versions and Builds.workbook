@@ -1,0 +1,163 @@
+{
+    "version": "Notebook/1.0",
+    "items": [
+      {
+        "type": 1,
+        "content": {
+          "json": "## Windows 10 Versions"
+        },
+        "name": "text - 2"
+      },
+      {
+        "type": 3,
+        "content": {
+          "version": "KqlItem/1.0",
+          "query": "// Get Windows Versions\r\nlet WinVer = (arg0:string) { tostring(split(arg0, \".\")[2]) };\r\n\r\n// Retrieve the number of records from the \"Completed\" message\r\nlet NumRecords = toscalar(IntuneDevices\r\n| where Result == \"Completed\"\r\n| extend stats_json = parse_json(Stats)\r\n| project stats_json.RecordCount);\r\n\r\n// Get the latest batch of devices\r\nlet CurrentDevices = IntuneDevices \r\n| where Result != \"Completed\" \r\n| order by TimeGenerated\r\n| limit toint(NumRecords);\r\n\r\n// Get Win10 devices only\r\nlet Win10CurrentDevices = CurrentDevices\r\n| where OSVersion startswith \"10.0\";\r\n\r\nWin10CurrentDevices\r\n| summarize Count = count() by tostring(WinVer(OSVersion))",
+          "size": 2,
+          "queryType": 0,
+          "resourceType": "microsoft.operationalinsights/workspaces",
+          "visualization": "piechart"
+        },
+        "customWidth": "30",
+        "name": "query - 3"
+      },
+      {
+        "type": 3,
+        "content": {
+          "version": "KqlItem/1.0",
+          "query": "// Get Windows 10 Versions over timte\r\nlet WinVer = (arg0:string) { tostring(split(arg0, \".\")[2]) };\r\n\r\nIntuneDevices\r\n| where OSVersion startswith \"10.0.\"\r\n| where TimeGenerated > ago(365d)\r\n| summarize Count = count() by tostring(WinVer(OSVersion)), bin(TimeGenerated, 1d)",
+          "size": 0,
+          "aggregation": 5,
+          "title": "Last 365 Days",
+          "queryType": 0,
+          "resourceType": "microsoft.operationalinsights/workspaces",
+          "visualization": "areachart",
+          "tileSettings": {
+            "showBorder": false,
+            "titleContent": {
+              "columnMatch": "OSVersion_2",
+              "formatter": 1
+            },
+            "leftContent": {
+              "columnMatch": "Count",
+              "formatter": 12,
+              "formatOptions": {
+                "palette": "auto"
+              },
+              "numberFormat": {
+                "unit": 17,
+                "options": {
+                  "maximumSignificantDigits": 3,
+                  "maximumFractionDigits": 2
+                }
+              }
+            }
+          },
+          "graphSettings": {
+            "type": 0,
+            "topContent": {
+              "columnMatch": "OSVersion_2",
+              "formatter": 1
+            },
+            "centerContent": {
+              "columnMatch": "Count",
+              "formatter": 1,
+              "numberFormat": {
+                "unit": 17,
+                "options": {
+                  "maximumSignificantDigits": 3,
+                  "maximumFractionDigits": 2
+                }
+              }
+            }
+          }
+        },
+        "customWidth": "70",
+        "name": "query - 4"
+      },
+      {
+        "type": 1,
+        "content": {
+          "json": "---\r\n## Compliance by Build and Version"
+        },
+        "name": "text - 5"
+      },
+      {
+        "type": 9,
+        "content": {
+          "version": "KqlParameterItem/1.0",
+          "parameters": [
+            {
+              "id": "c91a1373-7905-41a7-9347-cdceabdf423c",
+              "version": "KqlParameterItem/1.0",
+              "name": "WindowsVersion",
+              "label": "Windows Version",
+              "type": 2,
+              "isRequired": true,
+              "query": "let WinVer = (arg0:string) {split(arg0, \".\")[2]};\r\n\r\n// Retrieve the number of records from the \"Completed\" message\r\nlet NumRecords = toscalar(IntuneDevices\r\n| where Result == \"Completed\"\r\n| extend stats_json = parse_json(Stats)\r\n| project stats_json.RecordCount);\r\n\r\n// Get the latest batch of devices\r\nlet CurrentDevices = IntuneDevices \r\n| where Result != \"Completed\" \r\n| order by TimeGenerated\r\n| limit toint(NumRecords);\r\n\r\n// Get Win10 devices only\r\nlet Win10CurrentDevices = CurrentDevices\r\n| where OSVersion startswith \"10.0\";\r\n\r\nWin10CurrentDevices\r\n| extend WindowsVersion = toint(WinVer(OSVersion))\r\n| distinct WindowsVersion | order by WindowsVersion\r\n| project tostring(WindowsVersion)",
+              "value": "19042",
+              "typeSettings": {
+                "additionalResourceOptions": [],
+                "showDefault": false
+              },
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces"
+            },
+            {
+              "id": "cab51c31-b42f-45f3-870a-fb37591e81b4",
+              "version": "KqlParameterItem/1.0",
+              "name": "WindowsBuild",
+              "label": "Windows Build",
+              "type": 2,
+              "isRequired": true,
+              "query": "let WinVer = (arg0:string) {split(arg0, \".\")[2]};\r\nlet WinBuild = (arg0:string) {split(arg0, \".\")[3]};\r\n\r\n// Retrieve the number of records from the \"Completed\" message\r\nlet NumRecords = toscalar(IntuneDevices\r\n| where Result == \"Completed\"\r\n| extend stats_json = parse_json(Stats)\r\n| project stats_json.RecordCount);\r\n\r\n// Get the latest batch of devices\r\nlet CurrentDevices = IntuneDevices \r\n| where Result != \"Completed\" \r\n| order by TimeGenerated\r\n| limit toint(NumRecords);\r\n\r\n// Get Win10 devices only\r\nlet Win10CurrentDevices = CurrentDevices\r\n| where OSVersion startswith \"10.0\";\r\n\r\nWin10CurrentDevices\r\n| where WinVer(OSVersion) == tostring(dynamic({WindowsVersion}))\r\n| extend WindowsBuild = toint(WinBuild(OSVersion))\r\n| distinct WindowsBuild | order by WindowsBuild\r\n| project tostring(WindowsBuild)",
+              "value": "1052",
+              "typeSettings": {
+                "additionalResourceOptions": [],
+                "showDefault": false
+              },
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces"
+            }
+          ],
+          "style": "pills",
+          "queryType": 0,
+          "resourceType": "microsoft.operationalinsights/workspaces"
+        },
+        "name": "parameters - 1"
+      },
+      {
+        "type": 3,
+        "content": {
+          "version": "KqlItem/1.0",
+          "query": "let WinVer = (arg0:string) { tostring(split(arg0, \".\")[2]) };\r\nlet WinBuild = (arg0:string) { tostring(split(arg0, \".\")[3]) };\r\n\r\n// Retrieve the number of records from the \"Completed\" message\r\nlet NumRecords = toscalar(IntuneDevices\r\n| where Result == \"Completed\"\r\n| extend stats_json = parse_json(Stats)\r\n| project stats_json.RecordCount);\r\n\r\n// Get the latest batch of devices\r\nlet CurrentDevices = IntuneDevices \r\n| where Result != \"Completed\" \r\n| order by TimeGenerated\r\n| limit toint(NumRecords);\r\n\r\n// Get Win10 devices only\r\nlet Win10CurrentDevices = CurrentDevices\r\n| where OSVersion startswith \"10.0\";\r\n\r\nWin10CurrentDevices\r\n| where WinVer(OSVersion) == dynamic({WindowsVersion})\r\n| extend CurrentBuild = iff(toint(WinBuild(OSVersion)) >= toint(dynamic({WindowsBuild})), \"Compliant\", \"NonCompliant\")\r\n| summarize count() by CurrentBuild",
+          "size": 2,
+          "queryType": 0,
+          "resourceType": "microsoft.operationalinsights/workspaces",
+          "visualization": "piechart"
+        },
+        "customWidth": "30",
+        "name": "query - 2"
+      },
+      {
+        "type": 3,
+        "content": {
+          "version": "KqlItem/1.0",
+          "query": "// Get Percentage compliance for a Build over time\r\nlet WinVer = (arg0:string) { tostring(split(arg0, \".\")[2]) };\r\nlet WinBuild = (arg0:string) { tostring(split(arg0, \".\")[3]) };\r\n\r\n// Get Win10 devices only\r\nlet Win10Devices = IntuneDevices\r\n| where OSVersion startswith \"10.0\";\r\n\r\nWin10Devices\r\n| where TimeGenerated > ago(31d)\r\n| where WinVer(OSVersion) == dynamic({WindowsVersion}) and toint(WinBuild(OSVersion)) >= toint(dynamic({WindowsBuild}))\r\n| summarize Count = count() by bin(TimeGenerated, 1d)",
+          "size": 0,
+          "aggregation": 5,
+          "title": "Last 31 Days",
+          "queryType": 0,
+          "resourceType": "microsoft.operationalinsights/workspaces",
+          "visualization": "linechart"
+        },
+        "customWidth": "70",
+        "name": "query - 6"
+      }
+    ],
+    "fallbackResourceIds": [
+      "/subscriptions/fa57341a-f29a-4faf-af22-82158278597e/resourcegroups/prg-aus-prpci-sentinel-01/providers/microsoft.operationalinsights/workspaces/law-aus-caa-prpci-sentinel-01"
+    ],
+    "fromTemplateId": "sentinel-UserWorkbook",
+    "$schema": "https://github.com/Microsoft/Application-Insights-Workbooks/blob/master/schema/workbook.json"
+  }

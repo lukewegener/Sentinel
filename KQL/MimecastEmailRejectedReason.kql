@@ -1,0 +1,8 @@
+// Summarize and classify inbound mail rejected (but not greylisted)
+
+Mimecast_mail_CL
+| where RawData has_all ("\"Dir\": \"Inbound\"", "\"logType\": \"receipt\"", "\"Act\": \"Rej\"") and RawData !has "\"Error\": \"Attempt Greylisted\""
+| extend mcast_payload = substring(RawData, 20)
+| extend mcast_json = parse_json(mcast_payload)
+| extend RejectReason = case(tostring(mcast_json.mimecastEventId) == "mail_receipt_spam", "Spam", tostring(mcast_json.RejType) == "", "Other", tostring(mcast_json.RejType))
+| summarize count() by RejectReason
