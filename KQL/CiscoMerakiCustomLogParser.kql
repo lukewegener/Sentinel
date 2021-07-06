@@ -1,7 +1,7 @@
 // Title:           Cisco Meraki
 // Author:          Luke Wegener - based on prior work by Microsoft provided under MIT License https://raw.githubusercontent.com/Azure/Azure-Sentinel/master/LICENSE 
-// Version:         1.1
-// Last Updated:    17 June 2021
+// Version:         1.2
+// Last Updated:    6 July 2021
 // Comment:         Minor modification to support injestion of Meraki syslogs using Custom Logs. Workaround due to non RFC Syslog messages, see: https://techcommunity.microsoft.com/t5/azure-sentinel/sentinel-amp-cisco-meraki/m-p/1699967/highlight/true#M2372
 //                  Assumes custom log table name is Meraki_CL and removes the 'where Computer in..' clause. Otherwise preserves original functionality.
 //  
@@ -32,8 +32,7 @@
 //
 //
 let LogHeader = Meraki_CL
-//| where Computer in ("server1", "server2") // server1 and server2 are examples, replace this list with your Cisco Meraki device(s)
-| extend Computer = extract(@"^\w+\s\d{1,2}\s\d{2}\:\d{2}\:\d{2}\s([0-9\.]+)",1,RawData)
+| extend Computer = extract(@"^\w+\s+\d{1,2}\s\d{2}\:\d{2}\:\d{2}\s([0-9\.]+)",1,RawData)
 | extend Parser = extract_all(@"(\d+.\d+)\s([\w\-\_]+)\s([\w\-\_]+)\s([\S\s]+)$",dynamic([1,2,3,4]),RawData)
 | mv-expand Parser
 | extend SyslogMessage = strcat_array(Parser, " ")
