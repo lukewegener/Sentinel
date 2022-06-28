@@ -1,0 +1,9 @@
+// Summarize table ingestion for period by solution
+
+union withsource = tt *
+| where TimeGenerated > startofday(datetime(2022-06-12)) and TimeGenerated < startofday((datetime(2022-06-13)))
+// Only look at chargeable Tables
+| where _IsBillable == True
+| summarize
+TotalGBytes =round(sum(_BilledSize/(1024*1024*1024)),2)
+by bin(TimeGenerated, 1d), Solution=tt
